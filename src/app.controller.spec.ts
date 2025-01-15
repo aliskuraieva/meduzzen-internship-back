@@ -6,22 +6,20 @@ describe('AppController', () => {
   let appController: AppController;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
       providers: [AppService],
     }).compile();
 
-    appController = module.get<AppController>(AppController);
+    appController = moduleFixture.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return a health check response', () => {
-      const result = appController.getHealthCheck();
-      expect(result).toEqual({
-        status_code: 200,
-        detail: 'ok',
-        result: 'working',
-      });
+  it('should return a health check response', async () => {
+    const result = await appController.getHealthCheck();
+    expect(result).toEqual({
+      status_code: 200,
+      detail: 'ok',
+      result: 'working',
     });
   });
 });

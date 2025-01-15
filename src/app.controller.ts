@@ -1,22 +1,15 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service';
+import { HealthCheckResponseDto } from './dto/health-check-response.dto';
 
 @Controller()
 export class AppController {
-  @Get()
-  getHealthCheck() {
-    return {
-      status_code: HttpStatus.OK,
-      detail: 'ok',
-      result: 'working',
-    };
-  }
+  constructor(private readonly appService: AppService) {}
 
-  @Get('not-found')
-  getNotFound() {
-    return {
-      status_code: HttpStatus.NOT_FOUND,
-      detail: 'not found',
-      result: 'error',
-    };
+  @Get()
+  async getHealthCheck(): Promise<HealthCheckResponseDto> {
+    const healthCheckResponse = await this.appService.getHealthCheck();
+    await AppService.logHealthCheckStatus();
+    return healthCheckResponse;
   }
 }
