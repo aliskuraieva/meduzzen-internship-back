@@ -1,5 +1,6 @@
-import { Injectable, HttpException, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HealthCheckResponseDto } from './dto/health-check-response.dto';
+import { ForbiddenException } from './exceptions/forbidden.exception';
 
 @Injectable()
 export class AppService {
@@ -7,7 +8,7 @@ export class AppService {
 
   public async getHealthCheck(): Promise<HealthCheckResponseDto> {
     return {
-      status_code: 200,
+      status_code: HttpStatus.OK,
       detail: 'ok',
       result: 'working',
     };
@@ -18,6 +19,6 @@ export class AppService {
   }
 
   private async handleError(): Promise<void> {
-    throw new HttpException('Forbidden', 403);
+    throw new ForbiddenException();
   }
 }
