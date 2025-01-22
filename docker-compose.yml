@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${HOST_PORT}:${CONTAINER_PORT}"
+      - "${PORT}:${PORT}"
     restart: always
     command: npm run start:prod
     env_file:
