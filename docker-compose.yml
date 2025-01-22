@@ -1,11 +1,16 @@
-version: '3'
+version: '3.8'
+
 services:
   nestjs-app:
-    build: .
+    image: nestjs-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    volumes:
-      - .:/usr/src/app
+      - "${HOST_PORT}:${CONTAINER_PORT}"
+    restart: always
     command: npm run start:prod
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}

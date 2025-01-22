@@ -3,5 +3,3 @@ dist
 *.log
 *.md
 .env
-Dockerfile
-docker-compose.yml
