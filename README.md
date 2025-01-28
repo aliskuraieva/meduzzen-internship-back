@@ -81,3 +81,15 @@ Add the following CORS configuration when initializing the app:
 `allowedHeaders: 'Content-Type, Authorization'`: Permits specified headers in requests.
 
 This is the fastest and simplest way to configure CORS in NestJS, and it eliminates the need for a separate middleware.
+
+Generate a Migration:
+
+`npx typeorm migration:generate -n CreateUserAndAuth`
+
+Run the Migration:
+
+`npx typeorm migration:run`
+
+Revert the Migration (if needed):
+
+`npx typeorm migration:revert`
