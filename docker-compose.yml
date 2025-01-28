@@ -1,13 +1,41 @@
-version: '3.8'
-
 services:
-  nestjs-app:
-    image: nestjs-app
-    build:
-      context: .
-      dockerfile: Dockerfile
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}          
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
+      POSTGRES_DB: ${POSTGRES_DB}               
     ports:
-      - "${PORT}:${PORT}"
-    restart: always
-    env_file:
-      - .env
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}" 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+    networks:
+      - backend
+
+  app:
+    build: .
+    container_name: meduzzen-internship-back-nestjs-app
+    depends_on:
+      - postgres                       
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}               
+      POSTGRES_PORT: ${POSTGRES_PORT}      
+      POSTGRES_USER: ${POSTGRES_USER}     
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
+      POSTGRES_DB: ${POSTGRES_DB}        
+    ports:
+      - "${PORT}:${PORT}" 
+    volumes:
+      - .:/app
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge

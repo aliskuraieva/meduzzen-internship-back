@@ -27,3 +27,4 @@ import { Auth } from './entities/auth.entity';
   providers: [AppService],
 })
 export class AppModule {}
+
