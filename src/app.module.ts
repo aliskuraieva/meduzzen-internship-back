@@ -3,8 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { User } from './entities/user.entity';
-import { Auth } from './entities/auth.entity';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -18,10 +17,9 @@ import { Auth } from './entities/auth.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [User, Auth],
+      entities: [path.join(__dirname, '**', '*.entity.{ts,js}')],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User, Auth]),
   ],
   controllers: [AppController],
   providers: [AppService],
