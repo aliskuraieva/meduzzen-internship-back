@@ -26,7 +26,7 @@ describe('UsersService', () => {
               email: 'test@example.com',
               password: 'hashedpassword',
               username: 'TestUser',
-            }), // Додано create
+            }),
           },
         },
       ],
@@ -52,7 +52,9 @@ describe('UsersService', () => {
     jest.spyOn(repo, 'save').mockResolvedValue(user as any);
 
     const result = await service.create(createUserDto);
-    expect(result.status_code).toBe(201);
-    expect(result.result).toBe('user created');
+
+    expect(result.id).toBeDefined();
+    expect(result.email).toBe(createUserDto.email);
+    expect(result.username).toBe(createUserDto.username);
   });
 });
