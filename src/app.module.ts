@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import * as path from 'path';
+import { UsersModule } from './user/users.module';
 
 @Module({
   imports: [
@@ -18,8 +19,11 @@ import * as path from 'path';
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       entities: [path.join(__dirname, '**', '*.entity.{ts,js}')],
-      synchronize: true,
+      synchronize: false,
+      migrations: [path.join(__dirname, 'src/migrations/**/*{.ts,.js}')],
+      migrationsRun: true,
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

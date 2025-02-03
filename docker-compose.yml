@@ -19,7 +19,7 @@ services:
     build: .
     container_name: meduzzen-internship-back-nestjs-app
     depends_on:
-      - postgres-db3
+      - postgres
     env_file:
       - .env
     ports:
