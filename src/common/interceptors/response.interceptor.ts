@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CallHandler,
-  ExecutionContext,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -17,11 +13,14 @@ export class ResponseInterceptor implements NestInterceptor {
   ): Observable<ResponseDto<any>> {
     return next.handle().pipe(
       map((data) => {
-        return {
-          status_code: data.status_code || 200,
+        const response = context.switchToHttp().getResponse();
+        const statusCode = response.statusCode;
+
+        return new ResponseDto({
+          status_code: statusCode,
           result: data.result || 'success',
           detail: data.detail || {},
-        };
+        });
       }),
     );
   }
