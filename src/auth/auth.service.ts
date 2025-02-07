@@ -14,24 +14,7 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async registerWithAuth0(email: string): Promise<User> {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      const newUserDto = {
-        email,
-        username: email.split('@')[0],
-        password: 'default_password',
-      };
-      const newUser = await this.usersService.create(newUserDto);
-      this.logger.log(`Created user from Auth0: ${newUser.email}`);
-      return newUser;
-    }
-    this.logger.log(`User already exists: ${user.email}`);
-    return user;
-  }
-
-  async login(credentials: LoginDto): Promise<{ access_token: string }> {
-
+  async login(credentials: LoginDto): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.usersService.findByUsername(credentials.username);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -44,19 +27,27 @@ export class AuthService {
 
     const payload = { email: user.email };
     const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '7d' });
+
     this.logger.log(`User logged in: ${user.email}`);
-    return { access_token: accessToken };
+    return { access_token: accessToken, refresh_token: refreshToken };
   }
 
   async refreshToken(refreshToken: string) {
     try {
-      const payload = this.jwtService.verify(refreshToken);
+      const payload = this.jwtService.verify(refreshToken, { secret: process.env.REFRESH_TOKEN_SECRET });
       return {
-        accessToken: this.jwtService.sign({ sub: payload.sub, email: payload.email }, { expiresIn: '15m' }),
+        accessToken: this.jwtService.sign(
+          { sub: payload.sub, email: payload.email },
+          { expiresIn: '15m' }
+        ),
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
-}
 
+  async getMe(user: User): Promise<User> {
+    return this.usersService.findByEmail(user.email);
+  }
+}
