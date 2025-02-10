@@ -6,6 +6,7 @@ import { User } from 'src/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -46,13 +47,12 @@ export class AuthService {
   async getMe(user: User): Promise<User> {
     let userFromDb = await this.usersService.findByEmail(user.email);
     if (!userFromDb) {
-      const password = 'defaultPassword';
-      const hashedPassword = await bcrypt.hash(password, 10);
-
+      const password = null;
+    
       const createUserDto: CreateUserDto = {
         email: user.email,
         username: user.email.split('@')[0],
-        password: hashedPassword,
+        password,
       };
 
       userFromDb = await this.usersService.create(createUserDto);
