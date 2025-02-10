@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/user/users.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,29 +26,45 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '7d' });
-
-    this.logger.log(`User logged in: ${user.email}`);
-    return { access_token: accessToken, refresh_token: refreshToken };
+    return this.generateTokens(user);
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken, { secret: process.env.REFRESH_TOKEN_SECRET });
-      return {
-        accessToken: this.jwtService.sign(
-          { sub: payload.sub, email: payload.email },
-          { expiresIn: '15m' }
-        ),
-      };
+      const user = await this.usersService.findByEmail(payload.email);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return this.generateTokens(user);
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
   async getMe(user: User): Promise<User> {
-    return this.usersService.findByEmail(user.email);
+    let userFromDb = await this.usersService.findByEmail(user.email);
+    if (!userFromDb) {
+      const password = 'defaultPassword';
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const createUserDto: CreateUserDto = {
+        email: user.email,
+        username: user.email.split('@')[0],
+        password: hashedPassword,
+      };
+
+      userFromDb = await this.usersService.create(createUserDto);
+    }
+    return userFromDb;
+  }
+
+  private generateTokens(user: User): { access_token: string; refresh_token: string } {
+    const payload = { email: user.email, sub: user.id };
+    const access_token = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const refresh_token = this.jwtService.sign(payload, { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '7d' });
+
+    return { access_token, refresh_token };
   }
 }

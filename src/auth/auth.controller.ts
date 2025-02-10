@@ -1,8 +1,7 @@
-import { Controller, Post, Body, UseGuards, Get, Request, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Headers, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/user/users.service';
 import { User } from 'src/common/decorators/user.decorator';
@@ -27,8 +26,8 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'New access token generated' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid refresh token' })
   @Post('refresh-token')
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  async refreshToken(@Headers('Authorization') refreshToken: string) {
+    return this.authService.refreshToken(refreshToken);
   }
 
   @ApiBearerAuth()
@@ -38,10 +37,6 @@ export class AuthController {
   @UseGuards(AuthGuard(["auth0", "jwt"]))
   @Get('me')
   async getProfile(@User() user: any) {
-    const userFromDb = await this.usersService.findByEmail(user.email);
-    if (!userFromDb) {
-      throw new Error('User not found');
-    }
-    return userFromDb;
+    return this.authService.getMe(user);
   }
 }
