@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    const namespace = process.env.NAMESPACE || 'https://default-namespace.com';
+    const namespace = process.env.AUTH0_NAMESPACE || 'https://default-namespace.com';
     const emailClaim = `${namespace}/email`;
 
     return {
