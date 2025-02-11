@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,13 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload) {
-    const namespace = process.env.AUTH0_NAMESPACE || 'https://default-namespace.com';
-    const emailClaim = `${namespace}/email`;
-
-    return {
-      userId: payload.sub,
-      email: payload[emailClaim],
-    };
+  async validate(payload: any) {
+    return { userId: payload.sub, email: payload.email };
   }
 }
