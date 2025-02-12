@@ -15,6 +15,21 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
+  async registerWithAuth0(email: string): Promise<User> {
+    const existingUser = await this.findByEmail(email);
+    if (!existingUser) {
+      const newUser = this.userRepository.create({ email });
+      const savedUser = await this.userRepository.save(newUser);
+      this.logger.log(`Created user from Auth0: ${savedUser.email}`);
+      return savedUser;
+    }
+    return existingUser;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
   async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const [users, total] = await this.userRepository.findAndCount({
       take: pageSize,
@@ -27,6 +42,10 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { username } });
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -69,4 +88,3 @@ export class UsersService {
     return { message: 'User deleted' };
   }
 }
-
