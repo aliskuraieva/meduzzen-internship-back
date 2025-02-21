@@ -16,10 +16,14 @@ export class ResponseInterceptor implements NestInterceptor {
         const response = context.switchToHttp().getResponse();
         const statusCode = response.statusCode;
 
+        if (data && typeof data === 'object' && 'result' in data && 'detail' in data) {
+          return data;
+        }
+
         return new ResponseDto({
           status_code: statusCode,
-          result: data.result || 'success',
-          detail: data.detail || {},
+          result: 'success',
+          detail: data,
         });
       }),
     );

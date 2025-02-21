@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './exceptions/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
@@ -13,6 +14,14 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   app.enableCors({
     origin: [process.env.CORS_ORIGIN],

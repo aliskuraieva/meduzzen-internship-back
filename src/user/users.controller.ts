@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import { 
+  Controller, Get, Post, Body, Put, Delete, Query, Param 
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { HttpStatus } from '@nestjs/common';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { User } from '../entities/user.entity';
 
 @ApiTags('Users')
 @Controller('users')
@@ -21,7 +25,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a single user by ID' })
+  @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User retrieved successfully' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
   async findOne(@Param('id') id: number) {
@@ -35,17 +39,17 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update an existing user' })
+  @Put('me')
+  @ApiOperation({ summary: 'Update current user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User updated successfully' })
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  async update(@CurrentUser() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(user.id, updateUserDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user by ID' })
+  @Delete('me')
+  @ApiOperation({ summary: 'Delete current user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User deleted successfully' })
-  async remove(@Param('id') id: number) {
-    return this.usersService.remove(id);
+  async remove(@CurrentUser() user: User) {
+    return this.usersService.remove(user.id);
   }
 }
