@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -67,15 +67,16 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
+    if ('email' in updateUserDto) {
+      throw new BadRequestException('Email cannot be updated');
+    }
+
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
     await this.userRepository.update(id, updateUserDto);
-    const updatedUser = await this.userRepository.findOne({ where: { id } });
-
-    this.logger.log(`Updated user: ${updatedUser.email}`);
-    return updatedUser;
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async remove(id: number): Promise<{ message: string }> {

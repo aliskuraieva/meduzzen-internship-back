@@ -1,13 +1,9 @@
-import { IsEmail, IsOptional, MinLength, Matches } from 'class-validator';
+import { IsOptional, MinLength, Matches } from 'class-validator';
 import { PASSWORD_REGEX } from 'src/common/constants/password-regex.constant';
 
 export class UpdateUserDto {
   @IsOptional()
   username?: string;
-
-  @IsOptional()
-  @IsEmail()
-  email?: string;
 
   @IsOptional()
   @MinLength(8)

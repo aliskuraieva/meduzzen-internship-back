@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import { 
+  Controller, Get, Post, Body, Param, Put, Delete, Query, BadRequestException 
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -39,6 +41,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Update an existing user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User updated successfully' })
   async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    if ('email' in updateUserDto) {
+      throw new BadRequestException('Email cannot be updated');
+    }
     return this.usersService.update(id, updateUserDto);
   }
 

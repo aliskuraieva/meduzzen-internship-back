@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards, Get, Headers, HttpStatus } from '@ne
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/user/users.service';
 import { User } from 'src/common/decorators/user.decorator';
@@ -13,6 +14,14 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {}
+
+  @ApiOperation({ summary: 'User registration' })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully registered' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
 
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Successfully logged in' })
