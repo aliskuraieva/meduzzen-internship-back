@@ -1,5 +1,5 @@
 import { 
-  Controller, Get, Post, Body, Put, Delete, Query, BadRequestException 
+  Controller, Get, Post, Body, Put, Delete, Query, Param 
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,11 +24,12 @@ export class UsersController {
     return this.usersService.findAll(pagination.page, pagination.pageSize);
   }
 
-  @Get('me')
-  @ApiOperation({ summary: 'Get current user profile' })
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User retrieved successfully' })
-  async findOne(@CurrentUser() user: User) {
-    return user;
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  async findOne(@Param('id') id: number) {
+    return this.usersService.findOne(id);
   }
 
   @Post()
