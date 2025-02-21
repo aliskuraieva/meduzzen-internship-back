@@ -67,10 +67,6 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    if ('email' in updateUserDto) {
-      throw new BadRequestException('Email cannot be updated');
-    }
-
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }

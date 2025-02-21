@@ -5,7 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/user/users.service';
-import { User } from 'src/common/decorators/user.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -45,7 +45,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
   @UseGuards(AuthGuard(["auth0", "jwt"]))
   @Get('me')
-  async getProfile(@User() user: any) {
+  async getProfile(@CurrentUser() user: any) {
     return this.authService.getMe(user);
   }
 }
