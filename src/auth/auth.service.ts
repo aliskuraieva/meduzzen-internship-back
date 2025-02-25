@@ -77,14 +77,13 @@ export class AuthService {
     access_token: string;
     refresh_token: string;
   } {
-    const payload = { email: user.email, sub: user.id };
-
+    const payload = { email: user.email, sub: Number(user.id) };
     const access_token = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refresh_token = this.jwtService.sign(payload, {
       secret: process.env.REFRESH_TOKEN_SECRET,
       expiresIn: '7d',
     });
-
+  
     return { access_token, refresh_token };
   }
 
