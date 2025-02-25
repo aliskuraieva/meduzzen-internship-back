@@ -22,6 +22,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+console.log('[process.env.CORS_ORIGIN]', process.env.CORS_ORIGIN)
 
   // app.enableCors({
   //   origin: [process.env.CORS_ORIGIN],

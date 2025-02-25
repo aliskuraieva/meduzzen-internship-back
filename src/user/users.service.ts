@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, Logger, BadRequestException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -50,12 +49,11 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { password, email, username } = createUserDto;
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = this.userRepository.create({
       email,
       username,
-      password: hashedPassword,
+      password: password,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -66,10 +64,6 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
 
     await this.userRepository.update(id, updateUserDto);
     return await this.userRepository.findOne({ where: { id } });

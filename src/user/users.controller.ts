@@ -22,6 +22,7 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Users list retrieved successfully' })
   async findAll(@Query() pagination: PaginationDto) {
     return this.usersService.findAll(pagination.page, pagination.pageSize);
+    
   }
 
   @Get(':id')
