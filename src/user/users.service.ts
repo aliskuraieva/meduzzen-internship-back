@@ -29,10 +29,11 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
+  async findAll(page = 1, pageSize = 100): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
+    const currentPageSize = 100
     const [users, total] = await this.userRepository.findAndCount({
-      take: pageSize,
-      skip: (page - 1) * pageSize,
+      take: currentPageSize,
+      skip: (page - 1) * currentPageSize,
     });
     return { users, total, page, pageSize };
   }
