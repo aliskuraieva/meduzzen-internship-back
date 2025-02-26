@@ -23,6 +23,9 @@ import { AuthModule } from './auth/auth.module';
       synchronize: false,
       migrations: [path.join(__dirname, 'src/migrations/**/*{.ts,.js}')],
       migrationsRun: true,
+      // ssl:{
+      //   rejectUnauthorized:false
+      // }
     }),
     UsersModule,
     AuthModule,
