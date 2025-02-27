@@ -63,10 +63,11 @@ export class AuthService {
   
     let userFromDb = await this.usersService.findByEmail(user.email);
     if (!userFromDb) {
+      const hashedPassword = await argon2.hash('auth0-user');
       const createUserDto: CreateUserDto = {
         email: user.email,
         username: user.email.split('@')[0],
-        password: null,
+        password: hashedPassword,
       };
       userFromDb = await this.usersService.create(createUserDto);
     }

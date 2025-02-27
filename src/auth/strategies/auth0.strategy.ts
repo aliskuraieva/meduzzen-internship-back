@@ -28,10 +28,10 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     const emailClaim = `${namespace}/email`;
     const nameClaim = `${namespace}/name`;
 
-    return {
-      email: payload[emailClaim] || payload.email,
-      name: payload[nameClaim] || payload.name,
-      password: 'auth0-user'
-    };
-  }
+    const email = payload[emailClaim] || payload.email;
+    const name = payload[nameClaim] || email.split('@')[0];
+
+    return { email, name };
+}
+
 }
