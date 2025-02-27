@@ -1,7 +1,8 @@
-import { Controller, Post, Body, UseGuards, Get, Headers, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Headers, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
@@ -32,8 +33,12 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'New access token generated' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid refresh token' })
   @Post('refresh-token')
-  async refreshToken(@Headers('Authorization') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    if (!refreshTokenDto.refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+    const newTokens = await this.authService.refreshToken(refreshTokenDto.refreshToken);
+    return { message: 'New access token generated', data: newTokens };
   }
 
   @ApiBearerAuth()

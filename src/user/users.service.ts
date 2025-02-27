@@ -29,11 +29,10 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findAll(page = 1, pageSize = 100): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
-    const currentPageSize = 100
+  async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const [users, total] = await this.userRepository.findAndCount({
-      take: currentPageSize,
-      skip: (page - 1) * currentPageSize,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
     return { users, total, page, pageSize };
   }
@@ -64,11 +63,19 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-
-    await this.userRepository.update(id, updateUserDto);
-    return await this.userRepository.findOne({ where: { id } });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    if (updateUserDto.username) {
+      user.username = updateUserDto.username;
+    }
+  
+    await this.userRepository.save(user);
+    return user;
   }
+  
 
   async remove(id: number): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
