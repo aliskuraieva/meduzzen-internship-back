@@ -31,6 +31,7 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     return {
       email: payload[emailClaim] || payload.email,
       name: payload[nameClaim] || payload.name,
+      password: 'auth0-user'
     };
   }
 }
