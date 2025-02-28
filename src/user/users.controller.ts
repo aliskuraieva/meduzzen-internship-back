@@ -42,6 +42,7 @@ export class UsersController {
     status: HttpStatus.OK,
     description: 'Users list retrieved successfully',
   })
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   async findAll(@Query() pagination: PaginationDto) {
     return this.usersService.findAll(pagination.page, pagination.pageSize);
   }
@@ -53,6 +54,7 @@ export class UsersController {
     description: 'User retrieved successfully',
   })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   async findOne(@Param('id') id: number) {
     return this.usersService.findOne(id);
   }
@@ -63,6 +65,7 @@ export class UsersController {
     status: HttpStatus.CREATED,
     description: 'User created successfully',
   })
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -82,6 +85,7 @@ export class UsersController {
   }
 
   @Delete('me')
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   @ApiOperation({ summary: 'Delete current user' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -91,3 +95,4 @@ export class UsersController {
     return this.usersService.remove(user.id);
   }
 }
+
