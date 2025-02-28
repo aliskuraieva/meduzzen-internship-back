@@ -26,11 +26,12 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
   }
 
   async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'username', 'email', 'createdAt', 'updatedAt'],
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
@@ -38,13 +39,20 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   async findByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { username } });
+  }
+
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'username', 'password', 'createdAt', 'updatedAt'],
+    });
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {

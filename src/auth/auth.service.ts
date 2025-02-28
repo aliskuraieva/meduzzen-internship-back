@@ -1,111 +1,79 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/user/users.service';
 import * as argon2 from 'argon2';
-import { User } from 'src/entities/user.entity';
+import { UsersService } from 'src/user/users.service';
 import { LoginDto } from './dto/login.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { RegisterDto } from './dto/register.dto';
+import { User } from 'src/entities/user.entity';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
-    private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<{ message: string }> {
-    const { email, password } = registerDto;
-
-    const existingUser = await this.usersService.findByEmail(email);
+  async register(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
+    const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
-      throw new BadRequestException('User with this email already exists');
+      throw new UnauthorizedException('User already exists');
     }
 
-    const hashedPassword = await argon2.hash(password);
+    const hashedPassword = await argon2.hash(registerDto.password);
     const createUserDto: CreateUserDto = {
-      email,
-      username: email.split('@')[0],
+      email: registerDto.email,
+      username: registerDto.email.split('@')[0],
       password: hashedPassword,
     };
-
-    await this.usersService.create(createUserDto);
-    return { message: 'User successfully registered' };
+    
+    const newUser = await this.usersService.create(createUserDto);
+    const { password, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
   }
 
-  async login(
-    credentials: LoginDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
-    const user = await this.usersService.findByEmail(credentials.email);
-    if (!user) {
+  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.usersService.findByEmailWithPassword(loginDto.email);
+    if (!user || !(await argon2.verify(user.password, loginDto.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await argon2.verify(user.password, credentials.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    return this.generateTokens(user);
+    const payload = { sub: user.id, email: user.email };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }),
+    };
   }
 
-  async getMe(user: User): Promise<User> {
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      const user = await this.usersService.findByEmail(payload.email);
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+      return { accessToken: this.jwtService.sign({ sub: user.id, email: user.email }) };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async getMe(user: User): Promise<Omit<User, 'password'>> {
     if (!user?.email) {
-      throw new Error('User email is missing');
+      throw new UnauthorizedException('User email is missing');
     }
   
     let userFromDb = await this.usersService.findByEmail(user.email);
     if (!userFromDb) {
-      const hashedPassword = await argon2.hash('auth0-user');
       const createUserDto: CreateUserDto = {
         email: user.email,
         username: user.email.split('@')[0],
-        password: hashedPassword,
+        password: null,
       };
       userFromDb = await this.usersService.create(createUserDto);
     }
-    return userFromDb;
-  }
-
-  private generateTokens(user: User): {
-    access_token: string;
-    refresh_token: string;
-  } {
-    const payload = { email: user.email, sub: Number(user.id) };
-    const access_token = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refresh_token = this.jwtService.sign(payload, {
-      secret: process.env.REFRESH_TOKEN_SECRET,
-      expiresIn: '7d',
-    });
   
-    return { access_token, refresh_token };
-  }
-
-  async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is required');
-    }
-
-    try {
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.REFRESH_TOKEN_SECRET,
-      });
-
-      const user = await this.usersService.findByEmail(payload.email);
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      return { access_token: this.jwtService.sign({ email: user.email, sub: user.id }) };
-    } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    const { password, ...userWithoutPassword } = userFromDb;
+    return userWithoutPassword;
   }
 }

@@ -12,8 +12,8 @@ export class User extends BaseEntity {
   @IsEmail()
   email: string;
 
-  @Column()
-  @MinLength(6)
+  @Column({ select: false })
+  @MinLength(8)
   password: string;
 
 }
