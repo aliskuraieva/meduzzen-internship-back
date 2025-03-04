@@ -12,7 +12,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
@@ -26,7 +26,7 @@ export class AuthService {
       username: registerDto.email.split('@')[0],
       password: hashedPassword,
     };
-    
+
     const newUser = await this.usersService.create(createUserDto);
     const { password, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
@@ -45,14 +45,24 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken);
       const user = await this.usersService.findByEmail(payload.email);
+
       if (!user) {
         throw new UnauthorizedException('Invalid refresh token');
       }
-      return { accessToken: this.jwtService.sign({ sub: user.id, email: user.email }) };
+
+      const newRefreshToken = this.jwtService.sign(
+        { sub: user.id, email: user.email },
+        { expiresIn: '7d' }
+      );
+
+      return {
+        accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -62,18 +72,24 @@ export class AuthService {
     if (!user?.email) {
       throw new UnauthorizedException('User email is missing');
     }
-  
+
+    console.log('Fetching user with email:', user.email);
     let userFromDb = await this.usersService.findByEmail(user.email);
+    console.log('User found in DB:', userFromDb);
+
     if (!userFromDb) {
+      console.log('User not found, creating new user');
       const createUserDto: CreateUserDto = {
         email: user.email,
         username: user.email.split('@')[0],
         password: null,
       };
       userFromDb = await this.usersService.create(createUserDto);
+      console.log('User created:', userFromDb);
     }
-  
+
     const { password, ...userWithoutPassword } = userFromDb;
     return userWithoutPassword;
   }
+
 }

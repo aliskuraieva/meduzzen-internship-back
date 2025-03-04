@@ -1,9 +1,11 @@
-import { Controller, Post, Body, UseGuards, Get, Headers, UnauthorizedException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -16,7 +18,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully registered' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @Post('register')
-  async register(@Body() registerDto: any) {
+  async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
@@ -24,7 +26,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Successfully logged in' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
   @Post('login')
-  async login(@Body() loginDto: any) {
+  async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
@@ -44,7 +46,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User profile returned' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @UseGuards(AuthGuard(["auth0", "jwt"]))
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   @Get('me')
   async getProfile(@CurrentUser() user: any) {
     return this.authService.getMe(user);
