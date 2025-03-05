@@ -6,13 +6,14 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async register(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
@@ -32,8 +33,12 @@ export class AuthService {
     return userWithoutPassword;
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.findByEmailWithPassword(loginDto.email);
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.usersService.findByEmailWithPassword(
+      loginDto.email,
+    );
     if (!user || !(await argon2.verify(user.password, loginDto.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -45,9 +50,14 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshToken(
+    refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    if (!refreshTokenDto.refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
     try {
-      const payload = this.jwtService.verify(refreshToken);
+      const payload = this.jwtService.verify(refreshTokenDto.refreshToken);
       const user = await this.usersService.findByEmail(payload.email);
 
       if (!user) {
@@ -56,7 +66,7 @@ export class AuthService {
 
       const newRefreshToken = this.jwtService.sign(
         { sub: user.id, email: user.email },
-        { expiresIn: '7d' }
+        { expiresIn: '7d' },
       );
 
       return {
@@ -73,23 +83,18 @@ export class AuthService {
       throw new UnauthorizedException('User email is missing');
     }
 
-    console.log('Fetching user with email:', user.email);
     let userFromDb = await this.usersService.findByEmail(user.email);
-    console.log('User found in DB:', userFromDb);
 
     if (!userFromDb) {
-      console.log('User not found, creating new user');
       const createUserDto: CreateUserDto = {
         email: user.email,
         username: user.email.split('@')[0],
         password: null,
       };
       userFromDb = await this.usersService.create(createUserDto);
-      console.log('User created:', userFromDb);
     }
 
     const { password, ...userWithoutPassword } = userFromDb;
     return userWithoutPassword;
   }
-
 }

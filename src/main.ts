@@ -22,15 +22,8 @@ async function bootstrap() {
       transform: true,
     }),
   );
-console.log('[process.env.CORS_ORIGIN]', process.env.CORS_ORIGIN)
 
-  // app.enableCors({
-  //   origin: [process.env.CORS_ORIGIN],
-  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  //   allowedHeaders: 'Content-Type, Accept',
-  // });
-
-  app.enableCors()
+  app.enableCors();
 
   const config = new DocumentBuilder()
     .setTitle('API title')
