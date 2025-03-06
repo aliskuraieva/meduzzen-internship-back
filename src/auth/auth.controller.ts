@@ -1,19 +1,16 @@
-import { Controller, Post, Body, UseGuards, Get, Headers, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { UsersService } from 'src/user/users.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'User registration' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully registered' })
@@ -35,15 +32,16 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'New access token generated' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid refresh token' })
   @Post('refresh-token')
-  async refreshToken(@Headers('Authorization') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    const newTokens = await this.authService.refreshToken(refreshTokenDto);
+    return { message: 'New access token generated', data: newTokens };
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User profile returned' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @UseGuards(AuthGuard(["auth0", "jwt"]))
+  @UseGuards(AuthGuard(['auth0', 'jwt']))
   @Get('me')
   async getProfile(@CurrentUser() user: any) {
     return this.authService.getMe(user);

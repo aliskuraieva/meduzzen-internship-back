@@ -1,7 +1,6 @@
-import { Entity, Column, BeforeInsert } from 'typeorm';
+import { Entity, Column } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-import * as bcrypt from 'bcryptjs';
 
 @Entity()
 export class User extends BaseEntity {
@@ -13,12 +12,8 @@ export class User extends BaseEntity {
   @IsEmail()
   email: string;
 
-  @Column()
-  @MinLength(6)
+  @Column({ select: false })
+  @MinLength(8)
   password: string;
 
-  @BeforeInsert()
-  async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
 }

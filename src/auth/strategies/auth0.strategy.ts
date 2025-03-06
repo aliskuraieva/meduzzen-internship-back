@@ -24,10 +24,14 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
   }
 
   async validate(payload: any) {
-
     const namespace = process.env.AUTH0_NAMESPACE;
     const emailClaim = `${namespace}/email`;
+    const nameClaim = `${namespace}/name`;
 
-    return { email: payload[emailClaim] };
-  }
+    const email = payload[emailClaim] || payload.email;
+    const name = payload[nameClaim] || email.split('@')[0];
+
+    return { email, name };
+}
+
 }

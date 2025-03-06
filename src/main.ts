@@ -24,10 +24,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: [process.env.CORS_ORIGIN],
+    origin: process.env.CORS_ORIGIN,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept',
-  });
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+});
+
 
   const config = new DocumentBuilder()
     .setTitle('API title')

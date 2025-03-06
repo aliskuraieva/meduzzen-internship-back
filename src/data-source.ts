@@ -16,4 +16,8 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   logging: true,
   migrationsTableName: 'migrations',
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : undefined,
 });

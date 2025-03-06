@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, Logger, BadRequestException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -27,11 +26,12 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
   }
 
   async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'username', 'email', 'createdAt', 'updatedAt'],
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
@@ -39,7 +39,7 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
@@ -48,14 +48,20 @@ export class UsersService {
     return this.userRepository.findOne({ where: { username } });
   }
 
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'username', 'password', 'createdAt', 'updatedAt'],
+    });
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { password, email, username } = createUserDto;
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = this.userRepository.create({
       email,
       username,
-      password: hashedPassword,
+      password: password,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -65,15 +71,19 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-
-    await this.userRepository.update(id, updateUserDto);
-    return await this.userRepository.findOne({ where: { id } });
+  
+    if (updateUserDto.username) {
+      user.username = updateUserDto.username;
+    }
+  
+    await this.userRepository.save(user);
+    return user;
   }
+  
 
   async remove(id: number): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
