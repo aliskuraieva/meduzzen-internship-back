@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,7 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
   }
 
-  async findAll(page = 1, pageSize = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
+  async findAll(page: number = 1, pageSize: number = 10): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'username', 'email', 'createdAt', 'updatedAt'],
       take: pageSize,
@@ -37,7 +38,7 @@ export class UsersService {
     });
     return { users, total, page, pageSize };
   }
-
+  
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id }, select: ['id', 'username', 'email', 'createdAt', 'updatedAt'], });
     if (!user) throw new NotFoundException('User not found');
@@ -69,21 +70,29 @@ export class UsersService {
     return savedUser;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-  
+  async update(currentUserId: number, updateUserDto: UpdateUserDto): Promise<User> {
+    console.log('Current user ID:', currentUserId);
+    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
+
+    if (currentUserId !== user.id) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
     if (updateUserDto.username) {
       user.username = updateUserDto.username;
     }
-  
+
+    if (updateUserDto.password) {
+      user.password = await argon2.hash(updateUserDto.password);
+    }
+
     await this.userRepository.save(user);
     return user;
   }
-  
 
   async remove(id: number): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
