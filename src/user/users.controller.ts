@@ -81,7 +81,10 @@ export class UsersController {
     @CurrentUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(user.id, updateUserDto);
+    console.log('user', user);
+    console.log('updateUserDto', updateUserDto);
+
+    return this.usersService.update(user.email, updateUserDto);
   }
 
   @Delete('me')
@@ -95,4 +98,3 @@ export class UsersController {
     return this.usersService.remove(user.id);
   }
 }
-

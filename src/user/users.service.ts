@@ -70,30 +70,25 @@ export class UsersService {
     return savedUser;
   }
 
-  async update(currentUserId: number, updateUserDto: UpdateUserDto): Promise<User> {
-    console.log('Current user ID:', currentUserId);
-    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
-
+  async update(email: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+  
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    if (currentUserId !== user.id) {
-      throw new ForbiddenException('You can only update your own profile');
-    }
-
+  
     if (updateUserDto.username) {
       user.username = updateUserDto.username;
     }
-
+  
     if (updateUserDto.password) {
       user.password = await argon2.hash(updateUserDto.password);
     }
-
+  
     await this.userRepository.save(user);
     return user;
   }
-
+  
   async remove(id: number): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
