@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as path from 'path';
 import { UsersModule } from './user/users.module';
 import { AuthModule } from './auth/auth.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -23,13 +24,17 @@ import { AuthModule } from './auth/auth.module';
       synchronize: false,
       migrations: [path.join(__dirname, 'src/migrations/**/*{.ts,.js}')],
       migrationsRun: true,
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : undefined,
+      // ssl:
+      //   process.env.NODE_ENV === 'production'
+      //     ? { rejectUnauthorized: false }
+      //     : undefined,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     UsersModule,
     AuthModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
