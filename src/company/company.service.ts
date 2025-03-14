@@ -10,6 +10,7 @@ import { Company } from './company.entity';
 import { User } from '../entities/user.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { PaginatedCompanies } from 'src/auth/interfaces/paginated-companies.interface';
 
 @Injectable()
 export class CompanyService {
@@ -19,6 +20,14 @@ export class CompanyService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
   ) {}
+
+  private ensureOwnership(company: Company, user: User): void {
+    if (company.owner.id !== user.id) {
+      throw new ForbiddenException(
+        'You are not allowed to perform this action on this company',
+      );
+    }
+  }
 
   async createCompany(
     createCompanyDto: CreateCompanyDto,
@@ -36,21 +45,13 @@ export class CompanyService {
     return savedCompany;
   }
 
-  private async findCompanyById(id: number, user: User): Promise<Company> {
+  private async findCompanyById(id: number): Promise<Company> {
     const company = await this.companyRepository.findOne({
       where: { id },
-      relations: ['owner'],
     });
     if (!company) {
       throw new NotFoundException('Company not found');
     }
-
-    if (company.owner.id !== user.id) {
-      throw new ForbiddenException(
-        'You are not allowed to perform this action on this company',
-      );
-    }
-
     return company;
   }
 
@@ -59,7 +60,8 @@ export class CompanyService {
     updateCompanyDto: UpdateCompanyDto,
     user: User,
   ): Promise<Company> {
-    const company = await this.findCompanyById(id, user);
+    const company = await this.findCompanyById(id);
+    this.ensureOwnership(company, user);
 
     Object.assign(company, updateCompanyDto);
     const updatedCompany = await this.companyRepository.save(company);
@@ -68,7 +70,8 @@ export class CompanyService {
   }
 
   async deleteCompany(id: number, user: User): Promise<{ message: string }> {
-    const company = await this.findCompanyById(id, user);
+    const company = await this.findCompanyById(id);
+    this.ensureOwnership(company, user);
 
     await this.companyRepository.remove(company);
     this.logger.log(`Deleted company: ${company.name}`);
@@ -78,29 +81,12 @@ export class CompanyService {
   async getAllCompanies(
     page: number = 1,
     pageSize: number = 10,
-  ): Promise<{
-    companies: Company[];
-    total: number;
-    page: number;
-    pageSize: number;
-  }> {
+  ): Promise<PaginatedCompanies> {
     const [companies, total] = await this.companyRepository.findAndCount({
       take: pageSize,
       skip: (page - 1) * pageSize,
-      relations: ['owner'],
     });
     return { companies, total, page, pageSize };
-  }
-
-  async getCompanyById(id: number): Promise<Company> {
-    const company = await this.companyRepository.findOne({
-      where: { id },
-      relations: ['owner'],
-    });
-    if (!company) {
-      throw new NotFoundException('Company not found');
-    }
-    return company;
   }
 
   async updateVisibility(
@@ -108,7 +94,8 @@ export class CompanyService {
     isVisible: boolean,
     user: User,
   ): Promise<Company> {
-    const company = await this.findCompanyById(id, user);
+    const company = await this.findCompanyById(id);
+    this.ensureOwnership(company, user);
 
     if (typeof isVisible !== 'boolean') {
       throw new ForbiddenException('Invalid value for visibility');

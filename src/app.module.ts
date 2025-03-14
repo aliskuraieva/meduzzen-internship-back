@@ -24,13 +24,10 @@ import { CompanyModule } from './company/company.module';
       synchronize: false,
       migrations: [path.join(__dirname, 'src/migrations/**/*{.ts,.js}')],
       migrationsRun: true,
-      // ssl:
-      //   process.env.NODE_ENV === 'production'
-      //     ? { rejectUnauthorized: false }
-      //     : undefined,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : undefined,
     }),
     UsersModule,
     AuthModule,
