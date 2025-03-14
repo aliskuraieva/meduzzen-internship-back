@@ -106,7 +106,7 @@ export class CompanyController {
     description: 'Page number',
   })
   @ApiQuery({
-    name: 'limit',
+    name: 'pageSize',
     required: false,
     type: Number,
     description: 'Number of companies per page',
@@ -120,19 +120,5 @@ export class CompanyController {
       Number(pagination.page) || 1,
       Number(pagination.pageSize) || 10,
     );
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get company by ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Company retrieved successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Company not found',
-  })
-  async getCompanyById(@Param('id') id: string) {
-    return this.companyService.getCompanyById(+id);
   }
 }
