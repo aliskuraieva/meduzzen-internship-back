@@ -1,4 +1,4 @@
-import { Company } from "src/company/company.entity";
+import { Company } from "src/company/entities/company.entity";
 
 export interface PaginatedCompanies {
     companies: Company[];

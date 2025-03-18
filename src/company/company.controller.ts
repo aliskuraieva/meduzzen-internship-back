@@ -8,6 +8,7 @@ import {
   Get,
   Query,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
@@ -58,6 +59,12 @@ export class CompanyController {
     @Body() updateCompanyDto: UpdateCompanyDto,
     @CurrentUser() user: User,
   ) {
+    const company = await this.companyService.findCompanyById(+id);
+
+    if (company.owner.id !== user.id) {
+      throw new Error('You are not the owner of this company');
+    }
+
     return this.companyService.updateCompany(+id, updateCompanyDto, user);
   }
 
@@ -80,6 +87,12 @@ export class CompanyController {
     @Body() updateVisibilityDto: UpdateVisibilityDto,
     @CurrentUser() user: User,
   ) {
+    const company = await this.companyService.findCompanyById(+id);
+
+    if (company.owner.id !== user.id) {
+      throw new Error('You are not the owner of this company');
+    }
+
     return this.companyService.updateVisibility(
       +id,
       updateVisibilityDto.isVisible,
@@ -94,6 +107,12 @@ export class CompanyController {
     description: 'Company deleted successfully',
   })
   async deleteCompany(@Param('id') id: string, @CurrentUser() user: User) {
+    const company = await this.companyService.findCompanyById(+id);
+
+    if (company.owner.id !== user.id) {
+      throw new Error('You are not the owner of this company');
+    }
+
     return this.companyService.deleteCompany(+id, user);
   }
 
@@ -120,5 +139,19 @@ export class CompanyController {
       Number(pagination.page) || 1,
       Number(pagination.pageSize) || 10,
     );
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get company by ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Company retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Company not found',
+  })
+  async findCompanyById(@Param('id') id: string) {
+    return this.companyService.findCompanyById(+id);
   }
 }

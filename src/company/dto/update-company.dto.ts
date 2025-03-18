@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MinLength, MaxLength, IsBoolean } from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsString()
@@ -12,4 +12,8 @@ export class UpdateCompanyDto {
   @MinLength(10)
   @MaxLength(500)
   description?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  visibility?: boolean;
 }
