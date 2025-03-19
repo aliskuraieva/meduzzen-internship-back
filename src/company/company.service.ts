@@ -10,6 +10,7 @@ import { Company } from './entities/company.entity';
 import { User } from '../entities/user.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { InvitationDto } from './dto/invitation.dto';
 import { PaginatedCompanies } from 'src/auth/interfaces/paginated-companies.interface';
 import { UsersService } from 'src/user/users.service';
 import { Invitation } from './entities/invitation.entity';
@@ -137,17 +138,16 @@ export class CompanyService {
     return updatedCompany;
   }
 
-  // Manage Invitations
 
   async sendInvitation(
     companyId: number,
-    userId: number,
+    invitationDto: InvitationDto,
     sender: User,
   ): Promise<Invitation> {
     const company = await this.findCompanyById(companyId);
     await this.ensureOwnership(company.id, sender);
 
-    const user = await this.usersService.findOne(userId);
+    const user = await this.usersService.findOne(invitationDto.userId);
 
     const invitation = this.invitationRepository.create({
       company,
@@ -157,6 +157,7 @@ export class CompanyService {
 
     return await this.invitationRepository.save(invitation);
   }
+  
 
   async cancelInvitation(
     invitationId: number,
