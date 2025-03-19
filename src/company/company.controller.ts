@@ -63,9 +63,9 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('You are not the owner of this company');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('You are not the owner of this company');
+    // }
 
     return this.companyService.updateCompany(+id, updateCompanyDto, user);
   }
@@ -91,9 +91,9 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('You are not the owner of this company');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('You are not the owner of this company');
+    // }
 
     return this.companyService.updateVisibility(
       +id,
@@ -111,9 +111,9 @@ export class CompanyController {
   async deleteCompany(@Param('id') id: string, @CurrentUser() user: User) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('You are not the owner of this company');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('You are not the owner of this company');
+    // }
 
     return this.companyService.deleteCompany(+id, user);
   }
@@ -175,9 +175,9 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('Only the company owner can invite users');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('Only the company owner can invite users');
+    // }
 
     return this.companyService.sendInvitation(
       +companyId,
@@ -199,9 +199,9 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('Only the company owner can cancel invitations');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('Only the company owner can cancel invitations');
+    // }
 
     return this.companyService.cancelInvitation(
       +companyId,
@@ -262,9 +262,9 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    if (company.owner.email !== user.email) {
-      throw new Error('Only the company owner can view sent invitations');
-    }
+    // if (company.owner.email !== user.email) {
+    //   throw new Error('Only the company owner can view sent invitations');
+    // }
 
     return this.companyService.getSentInvitations(+companyId);
   }
