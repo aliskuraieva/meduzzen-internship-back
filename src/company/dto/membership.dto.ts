@@ -1,4 +1,5 @@
 import { IsInt, IsNotEmpty, IsEnum } from 'class-validator';
+import { Role } from '../enum/role.enum';
 
 export class MembershipDto {
   @IsInt()
@@ -9,6 +10,6 @@ export class MembershipDto {
   @IsNotEmpty()
   userId: number;
 
-  @IsEnum(['owner', 'member'])
-  role: 'owner' | 'member';
+  @IsEnum(Role)
+  role: Role;
 }

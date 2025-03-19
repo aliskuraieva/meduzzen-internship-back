@@ -1,4 +1,5 @@
 import { IsInt, IsNotEmpty, IsEnum } from 'class-validator';
+import { RequestStatus } from '../enum/request-status.enum';
 
 export class RequestDto {
   @IsInt()
@@ -9,6 +10,6 @@ export class RequestDto {
   @IsNotEmpty()
   userId: number;
 
-  @IsEnum(['pending', 'accepted', 'declined'])
-  status: 'pending' | 'accepted' | 'declined';
+  @IsEnum(RequestStatus)
+  status: RequestStatus;
 }

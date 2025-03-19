@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne } from 'typeorm';
 import { BaseEntity } from 'src/entities/base.entity';
 import { User } from 'src/entities/user.entity';
 import { Company } from 'src/company/entities/company.entity';
+import { RequestStatus } from '../enum/request-status.enum';
 
 @Entity()
 export class Invitation extends BaseEntity {
@@ -14,6 +15,6 @@ export class Invitation extends BaseEntity {
   @ManyToOne(() => User, { nullable: false })
   sender: User;
 
-  @Column({ type: 'boolean', default: false })
-  isAccepted: boolean;
+  @Column({ type: 'enum', enum: RequestStatus })
+  status: RequestStatus;
 }

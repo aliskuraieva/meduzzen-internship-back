@@ -15,5 +15,5 @@ export class UpdateCompanyDto {
 
   @IsBoolean()
   @IsOptional()
-  visibility?: boolean;
+  isVisible?: boolean;
 }

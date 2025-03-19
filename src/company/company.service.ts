@@ -102,11 +102,19 @@ export class CompanyService {
   async getAllCompanies(
     page: number = 1,
     pageSize: number = 10,
+    userId: number,
   ): Promise<PaginatedCompanies> {
-    const [companies, total] = await this.companyRepository.findAndCount({
-      take: pageSize,
-      skip: (page - 1) * pageSize,
-    });
+    const queryBuilder = this.companyRepository.createQueryBuilder('company');
+
+    queryBuilder.skip((page - 1) * pageSize).take(pageSize);
+
+    queryBuilder.andWhere(
+      '(company.isVisible = true OR company.ownerId = :ownerId)',
+      { ownerId: userId },
+    );
+
+    const [companies, total] = await queryBuilder.getManyAndCount();
+
     return { companies, total, page, pageSize };
   }
 
@@ -167,6 +175,57 @@ export class CompanyService {
     return { message: 'Invitation canceled' };
   }
 
+  async acceptInvitation(
+    invitationId: number,
+    companyId: number,
+    user: User,
+  ): Promise<Membership> {
+    const company = await this.findCompanyById(companyId);
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+        company: { id: companyId },
+        user: { id: user.id },
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const membership = this.membershipRepository.create({
+      user,
+      company,
+    });
+
+    await this.membershipRepository.save(membership);
+    await this.invitationRepository.remove(invitation);
+
+    return membership;
+  }
+
+  async declineInvitation(
+    invitationId: number,
+    companyId: number,
+    user: User,
+  ): Promise<{ message: string }> {
+    const company = await this.findCompanyById(companyId);
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+        company: { id: companyId },
+        user: { id: user.id },
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    await this.invitationRepository.remove(invitation);
+    return { message: 'Invitation declined' };
+  }
+
   // Manage Requests
 
   async sendRequestToJoin(companyId: number, user: User): Promise<Request> {
@@ -222,6 +281,38 @@ export class CompanyService {
     await this.requestRepository.remove(request);
 
     return membership;
+  }
+
+  async getUserInvitations(
+    companyId: number,
+    user: User,
+  ): Promise<Invitation[]> {
+    const company = await this.findCompanyById(companyId);
+
+    const invitations = await this.invitationRepository.find({
+      where: { company: { id: company.id }, user: { id: user.id } },
+    });
+
+    if (!invitations) {
+      throw new NotFoundException('No invitations found');
+    }
+
+    return invitations;
+  }
+
+  async getSentInvitations(companyId: number): Promise<Invitation[]> {
+    const company = await this.findCompanyById(companyId);
+
+    const invitations = await this.invitationRepository.find({
+      where: { company: { id: company.id } },
+      relations: ['user', 'sender'],
+    });
+
+    if (!invitations) {
+      throw new NotFoundException('No sent invitations found');
+    }
+
+    return invitations;
   }
 
   async declineRequestToJoin(
