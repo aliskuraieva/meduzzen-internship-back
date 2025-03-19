@@ -42,7 +42,7 @@ export class CompanyService {
       throw new NotFoundException('Company or owner not found');
     }
 
-    if (companyWithOwner.owner.id !== user.id) {
+    if (companyWithOwner.owner.email !== user.email) {
       throw new ForbiddenException('You are not the owner of this company');
     }
   }

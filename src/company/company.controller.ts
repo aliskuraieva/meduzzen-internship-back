@@ -61,7 +61,7 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.id !== user.id) {
+    if (company.owner.email !== user.email) {
       throw new Error('You are not the owner of this company');
     }
 
@@ -89,7 +89,7 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.id !== user.id) {
+    if (company.owner.email !== user.email) {
       throw new Error('You are not the owner of this company');
     }
 
@@ -109,7 +109,7 @@ export class CompanyController {
   async deleteCompany(@Param('id') id: string, @CurrentUser() user: User) {
     const company = await this.companyService.findCompanyById(+id);
 
-    if (company.owner.id !== user.id) {
+    if (company.owner.email !== user.email) {
       throw new Error('You are not the owner of this company');
     }
 
