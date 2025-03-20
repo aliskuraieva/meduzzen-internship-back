@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsBoolean,
+  IsOptional,
+  IsInt,
+  IsPositive,
+} from 'class-validator';
 
 export class CreateCompanyDto {
   @IsString()
@@ -11,5 +20,10 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   @MinLength(10)
   @MaxLength(500)
-  description: string;
+  description?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  visibility?: boolean;
+
 }
