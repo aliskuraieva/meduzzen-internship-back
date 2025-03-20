@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { BaseEntity } from 'src/entities/base.entity';
 import { User } from 'src/entities/user.entity';
 import { Invitation } from 'src/company/entities/invitation.entity';
@@ -28,4 +28,8 @@ export class Company extends BaseEntity {
 
   @OneToMany(() => Membership, (membership) => membership.company)
   memberships: Membership[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  admins: User[];
 }
