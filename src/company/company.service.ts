@@ -153,13 +153,18 @@ export class CompanyService {
 
     const user = await this.usersService.findOne(userId);
 
-    const membership = this.membershipRepository.create({
-      company,
-      user,
-      role: Role.ADMIN,
+    const existingMembership = await this.membershipRepository.findOne({
+      where: { company: { id: companyId }, user: { id: userId } },
     });
 
-    return await this.membershipRepository.save(membership);
+    if (!existingMembership) {
+      throw new ForbiddenException(
+        'User must be a company member before becoming an admin.',
+      );
+    }
+
+    existingMembership.role = Role.ADMIN;
+    return await this.membershipRepository.save(existingMembership);
   }
 
   async removeAdminFromCompany(
@@ -178,8 +183,10 @@ export class CompanyService {
       throw new NotFoundException('User is not an admin');
     }
 
-    await this.membershipRepository.remove(membership);
-    return { message: 'Admin removed from company' };
+    membership.role = Role.MEMBER;
+    await this.membershipRepository.save(membership);
+
+    return { message: 'Admin role removed from user' };
   }
 
   async getAdminsOfCompany(companyId: number): Promise<Membership[]> {
