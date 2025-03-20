@@ -61,8 +61,6 @@ export class CompanyController {
     @Body() updateCompanyDto: UpdateCompanyDto,
     @CurrentUser() user: User,
   ) {
-    const company = await this.companyService.findCompanyById(+id);
-
     return this.companyService.updateCompany(+id, updateCompanyDto, user);
   }
 
@@ -85,8 +83,6 @@ export class CompanyController {
     @Body() updateVisibilityDto: UpdateVisibilityDto,
     @CurrentUser() user: User,
   ) {
-    const company = await this.companyService.findCompanyById(+id);
-
     return this.companyService.updateVisibility(
       +id,
       updateVisibilityDto.isVisible,
@@ -101,8 +97,6 @@ export class CompanyController {
     description: 'Company deleted successfully',
   })
   async deleteCompany(@Param('id') id: string, @CurrentUser() user: User) {
-    const company = await this.companyService.findCompanyById(+id);
-
     return this.companyService.deleteCompany(+id, user);
   }
 
@@ -161,8 +155,6 @@ export class CompanyController {
     @Body() invitationDto: InvitationDto,
     @CurrentUser() user: User,
   ) {
-    const company = await this.companyService.findCompanyById(+companyId);
-
     return this.companyService.sendInvitation(+companyId, invitationDto, user);
   }
 
@@ -177,8 +169,6 @@ export class CompanyController {
     @Param('userId') userId: string,
     @CurrentUser() user: User,
   ) {
-    const company = await this.companyService.findCompanyById(+companyId);
-
     return this.companyService.cancelInvitation(+companyId, user);
   }
 
@@ -233,8 +223,6 @@ export class CompanyController {
     @Param('id') companyId: string,
     @CurrentUser() user: User,
   ) {
-    const company = await this.companyService.findCompanyById(+companyId);
-
     return this.companyService.getSentInvitations(+companyId);
   }
 
