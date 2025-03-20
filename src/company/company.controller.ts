@@ -63,10 +63,6 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('You are not the owner of this company');
-    // }
-
     return this.companyService.updateCompany(+id, updateCompanyDto, user);
   }
 
@@ -91,10 +87,6 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+id);
 
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('You are not the owner of this company');
-    // }
-
     return this.companyService.updateVisibility(
       +id,
       updateVisibilityDto.isVisible,
@@ -110,10 +102,6 @@ export class CompanyController {
   })
   async deleteCompany(@Param('id') id: string, @CurrentUser() user: User) {
     const company = await this.companyService.findCompanyById(+id);
-
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('You are not the owner of this company');
-    // }
 
     return this.companyService.deleteCompany(+id, user);
   }
@@ -175,15 +163,7 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('Only the company owner can invite users');
-    // }
-
-    return this.companyService.sendInvitation(
-      +companyId,
-      invitationDto,
-      user,
-    );
+    return this.companyService.sendInvitation(+companyId, invitationDto, user);
   }
 
   @Delete(':id/invite/:userId')
@@ -199,14 +179,7 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('Only the company owner can cancel invitations');
-    // }
-
-    return this.companyService.cancelInvitation(
-      +companyId,
-      user,
-    );
+    return this.companyService.cancelInvitation(+companyId, user);
   }
 
   @Patch(':id/invite/:userId/accept')
@@ -262,10 +235,6 @@ export class CompanyController {
   ) {
     const company = await this.companyService.findCompanyById(+companyId);
 
-    // if (company.owner.email !== user.email) {
-    //   throw new Error('Only the company owner can view sent invitations');
-    // }
-
     return this.companyService.getSentInvitations(+companyId);
   }
 
@@ -280,7 +249,7 @@ export class CompanyController {
     @Body() requestDto: RequestDto,
     @CurrentUser() user: User,
   ) {
-    return this.companyService.sendRequestToJoin(+companyId, user)
+    return this.companyService.sendRequestToJoin(+companyId, user);
   }
 
   @Delete(':id/request/:userId')
@@ -294,7 +263,7 @@ export class CompanyController {
     @Param('userId') userId: string,
     @CurrentUser() user: User,
   ) {
-    return this.companyService.cancelRequestToJoin( +userId, user);
+    return this.companyService.cancelRequestToJoin(+userId, user);
   }
 
   @Patch(':id/request/:userId/accept')
