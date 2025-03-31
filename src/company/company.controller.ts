@@ -308,4 +308,46 @@ export class CompanyController {
   ) {
     return this.companyService.leaveCompany(+companyId, user);
   }
+
+  @Post(':id/admin/:userId')
+  @ApiOperation({ summary: 'Assign admin role to user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin assigned successfully',
+  })
+  async addAdmin(
+    @Param('id') companyId: string,
+    @Param('userId') userId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.companyService.addAdminToCompany(+companyId, +userId, user);
+  }
+
+  @Delete(':id/admin/:userId')
+  @ApiOperation({ summary: 'Remove admin role from user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin removed successfully',
+  })
+  async removeAdmin(
+    @Param('id') companyId: string,
+    @Param('userId') userId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.companyService.removeAdminFromCompany(
+      +companyId,
+      +userId,
+      user,
+    );
+  }
+
+  @Get(':id/admins')
+  @ApiOperation({ summary: 'Get list of company administrators' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of administrators retrieved successfully',
+  })
+  async getAdmins(@Param('id') companyId: string) {
+    return this.companyService.getAdminsOfCompany(+companyId);
+  }
 }

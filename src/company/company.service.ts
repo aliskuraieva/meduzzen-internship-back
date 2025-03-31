@@ -16,6 +16,7 @@ import { UsersService } from 'src/user/users.service';
 import { Invitation } from './entities/invitation.entity';
 import { Request } from './entities/request.entity';
 import { Membership } from './entities/membership.entity';
+import { Role } from './enum/role.enum';
 
 @Injectable()
 export class CompanyService {
@@ -50,17 +51,21 @@ export class CompanyService {
 
   async createCompany(
     createCompanyDto: CreateCompanyDto,
-    owner: User,
+    currentUser: User,
   ): Promise<Company> {
+    const user = await this.usersService.findByEmail(currentUser.email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const company = this.companyRepository.create({
       ...createCompanyDto,
-      owner,
+      owner: user,
     });
 
     const savedCompany = await this.companyRepository.save(company);
-    this.logger.log(
-      `Created company: ${savedCompany.name}, Owner: ${owner.id}`,
-    );
+    this.logger.log(`Created company: ${savedCompany.name}, Owner: ${user.id}`);
     return savedCompany;
   }
 
@@ -138,6 +143,62 @@ export class CompanyService {
     return updatedCompany;
   }
 
+  async addAdminToCompany(
+    companyId: number,
+    userId: number,
+    sender: User,
+  ): Promise<Membership> {
+    const company = await this.findCompanyById(companyId);
+    await this.ensureOwnership(company.id, sender);
+
+    const user = await this.usersService.findOne(userId);
+
+    const existingMembership = await this.membershipRepository.findOne({
+      where: { company: { id: companyId }, user: { id: userId } },
+    });
+
+    if (!existingMembership) {
+      throw new ForbiddenException(
+        'User must be a company member before becoming an admin.',
+      );
+    }
+
+    existingMembership.role = Role.ADMIN;
+    return await this.membershipRepository.save(existingMembership);
+  }
+
+  async removeAdminFromCompany(
+    companyId: number,
+    userId: number,
+    sender: User,
+  ): Promise<{ message: string }> {
+    const company = await this.findCompanyById(companyId);
+    await this.ensureOwnership(company.id, sender);
+
+    const membership = await this.membershipRepository.findOne({
+      where: { user: { id: userId }, company: { id: companyId } },
+    });
+
+    if (!membership || membership.role !== Role.ADMIN) {
+      throw new NotFoundException('User is not an admin');
+    }
+
+    membership.role = Role.MEMBER;
+    await this.membershipRepository.save(membership);
+
+    return { message: 'Admin role removed from user' };
+  }
+
+  async getAdminsOfCompany(companyId: number): Promise<Membership[]> {
+    const company = await this.findCompanyById(companyId);
+
+    const admins = await this.membershipRepository.find({
+      where: { company: { id: companyId }, role: Role.ADMIN },
+      relations: ['user'],
+    });
+
+    return admins;
+  }
 
   async sendInvitation(
     companyId: number,
@@ -157,7 +218,6 @@ export class CompanyService {
 
     return await this.invitationRepository.save(invitation);
   }
-  
 
   async cancelInvitation(
     invitationId: number,
@@ -226,8 +286,6 @@ export class CompanyService {
     await this.invitationRepository.remove(invitation);
     return { message: 'Invitation declined' };
   }
-
-  // Manage Requests
 
   async sendRequestToJoin(companyId: number, user: User): Promise<Request> {
     const company = await this.findCompanyById(companyId);
@@ -336,7 +394,6 @@ export class CompanyService {
     return { message: 'Request declined' };
   }
 
-  // Remove users from company
   async removeUserFromCompany(
     companyId: number,
     userId: number,
@@ -357,7 +414,6 @@ export class CompanyService {
     return { message: 'User removed from company' };
   }
 
-  // Leave company
   async leaveCompany(
     companyId: number,
     user: User,
